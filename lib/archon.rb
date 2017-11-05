@@ -2,6 +2,7 @@ require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ec2'
 require 'cgminer/api'
 require 'ipaddress'
+require 'sane_timeout'
 
 ###############################################################################
 @address_range = '' # Test host for now. Add cidr for a range
@@ -28,7 +29,7 @@ def flush_hostlist
 end
 
 ###############################################################################
-# Pull credentials stored in ~/.aws/credentials and instantiate CloudWatch client
+# Pull credentials stored in ~/.aws/credentials and prepare CloudWatch client
 def init_cloudwatch
   credentials = Aws::SharedCredentials.new(profile_name: 'default')
   Aws::EC2::Client.new(credentials: credentials)
@@ -66,7 +67,7 @@ def query_cgminers(command)
 
   @addr_list.each do |addr|
     begin
-      host = CGMiner::API::Client.new(addr.to_s, 4028)
+      host = Timeout::timeout(2) { CGMiner::API::Client.new(addr.to_s, 4028) }
       returned_data = host.send(command)
       json_response = JSON.parse(returned_data.body.to_json)
       emitted_metric = json_response[0]["Getworks"]

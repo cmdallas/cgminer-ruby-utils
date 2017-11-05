@@ -18,8 +18,8 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-spec.add_development_dependency 'aws-sdk-cloudwatch'
-spec.add_development_dependency 'aws-sdk-ec2'
-spec.add_development_dependency 'cgminer/api'
-spec.add_development_dependency 'ipaddress'
+  spec.add_development_dependency 'aws-sdk-cloudwatch'
+  spec.add_development_dependency 'aws-sdk-ec2'
+  spec.add_development_dependency 'cgminer/api'
+  spec.add_development_dependency 'ipaddress'
 end
