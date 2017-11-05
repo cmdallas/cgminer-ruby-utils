@@ -4,7 +4,7 @@ require 'cgminer/api'
 require 'ipaddress'
 
 ###############################################################################
-@address_range = '10.0.0.74' # Test host for now. Add cidr for a range
+@address_range = '' # Test host for now. Add cidr for a range
 @addr_list = []
 
 # Build a custom range of IP addresses without using a netmask
@@ -14,7 +14,7 @@ def dynamic_host_constructor(first_address, last_address)
   @addr_list = first.to(last)
 end
 
-# use @address_range to construct a list
+# Use @address_range to construct a list
 def static_host_constructor
   ip = IPAddress @address_range
   ip.each do |addr|
@@ -71,15 +71,12 @@ def query_cgminers(command)
       json_response = JSON.parse(returned_data.body.to_json)
       emitted_metric = json_response[0]["Getworks"]
       put_getwork('namespace3', 'Getworks', 'IP', addr, emitted_metric)
-      now = Time.now.strftime('%a %m %d %Y %H:%M:%S').to_s
       # add logic to append logfile
-      puts addr + ' ' + emitted_metric.to_s + ' ' + now
+      puts addr + ' ' + emitted_metric.to_s + ' SUCCESS ' + \
+                        Time.now.strftime('%m %d %Y %H:%M:%S').to_s
     rescue => e
       # add logic to append logfile
-      print addr + ' ' + now
-      print e
-      puts "\n\n"
-      next
+      puts addr + ' - FAILURE ' + e.to_s + ' ' + Time.now.strftime('%m %d %Y %H:%M:%S').to_s
     end
   end
 end
@@ -96,9 +93,9 @@ def main
 
   begin
     puts 'Building host list'
-    static_host_constructor
+    dynamic_host_constructor('10.0.0.74', '10.0.0.76')
     puts 'The host list has been constructed with the following hosts:'
-    puts @addr_list + "\n"
+    puts @addr_list.to_s + "\n"
   rescue => e
     puts '[ERROR] Could not create host list'
     raise e
@@ -107,7 +104,8 @@ def main
   while true
     query_cgminers('summary')
     # query_cgminers('devs')
-    sleep 60
+    # Ideally sleep will be 15min (900)
+    sleep 5
     redo
   end
 end
