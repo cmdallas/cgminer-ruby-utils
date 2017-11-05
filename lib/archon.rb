@@ -1,39 +1,48 @@
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ec2'
 require 'cgminer/api'
+require 'colorize'
 require 'ipaddress'
 require 'sane_timeout'
 
+require_relative 'assets'
+
 ###############################################################################
 @address_range = '' # Test host for now. Add cidr for a range
-@addr_list = []
+@host_list = []
 
-# Build a custom range of IP addresses without using a netmask
-def dynamic_host_constructor(first_address, last_address)
-  first = IPAddress first_address
-  last = IPAddress last_address
-  @addr_list = first.to(last)
+def host_list_constructor
+  # TODO: Build host list from file
+  nil
 end
 
-# Use @address_range to construct a list
+def dynamic_host_constructor(first_address, last_address)
+  # Build a custom range of IP addresses without using a netmask
+  first = IPAddress first_address
+  last = IPAddress last_address
+  @host_list = first.to(last)
+end
+
 def static_host_constructor
+  # Use @address_range to construct a list
   ip = IPAddress @address_range
   ip.each do |addr|
-    @addr_list << addr.address
+    @host_list << addr.address
   end
 end
 
-# Empty the hostlist
 def flush_hostlist
-  @addr_list = []
+  # Empty the hostlist
+  @host_list = []
 end
 
 ###############################################################################
-# Pull credentials stored in ~/.aws/credentials and prepare CloudWatch client
 def init_cloudwatch
+  # Pull credentials stored in ~/.aws/credentials
   credentials = Aws::SharedCredentials.new(profile_name: 'default')
   Aws::EC2::Client.new(credentials: credentials)
 
+  # Instantiate CloudWatch client
   @cloudwatch = Aws::CloudWatch::Client.new(region: 'us-west-2')
 end
 
@@ -42,17 +51,17 @@ def put_getwork(namespace, name_metric, dimension_name, dimension_value, datapoi
   # Dump metrics into CloudWatch
   @cloudwatch.put_metric_data({
     namespace: namespace,
-    metric_data: [ # required
+    metric_data: [
       {
-        metric_name: name_metric, # Getwprks
+        metric_name: name_metric, # Getworks for testing
         dimensions: [
           {
-            name: dimension_name, # IP:
-            value: dimension_value, # 172.16.0.3
+            name: dimension_name, # 'IP'
+            value: dimension_value, # The actual IP address
           },
         ],
         timestamp: Time.now,
-        value: datapoint_value, # func name value
+        value: datapoint_value, # Value of the emitted_metric
         unit: "Count",
         storage_resolution: 1,
       },
@@ -61,44 +70,50 @@ def put_getwork(namespace, name_metric, dimension_name, dimension_value, datapoi
 end
 
 ###############################################################################
-# Query the host list constructed by the host_constructor
 def query_cgminers(command)
+  # Query the host list constructed by the host_constructor
   command = command.to_sym
 
-  @addr_list.each do |addr|
+  @host_list.each do |addr|
     begin
-      host = Timeout::timeout(2) { CGMiner::API::Client.new(addr.to_s, 4028) }
+      host = Timeout::timeout(10) { CGMiner::API::Client.new(addr.to_s, 4028) }
       returned_data = host.send(command)
       json_response = JSON.parse(returned_data.body.to_json)
       emitted_metric = json_response[0]["Getworks"]
       put_getwork('namespace3', 'Getworks', 'IP', addr, emitted_metric)
       # add logic to append logfile
       puts addr + ' ' + emitted_metric.to_s + ' SUCCESS ' + \
-                        Time.now.strftime('%m %d %Y %H:%M:%S').to_s
+                Time.now.strftime('%m %d %Y %H:%M:%S').to_s
     rescue => e
       # add logic to append logfile
-      puts addr + ' - FAILURE ' + e.to_s + ' ' + Time.now.strftime('%m %d %Y %H:%M:%S').to_s
+      puts addr + ' - FAILURE ' + e.to_s + ' ' + \
+                Time.now.strftime('%m %d %Y %H:%M:%S').to_s
     end
   end
 end
 
 ###############################################################################
 def main
+  # TODO: move first 2 begin/rescue blocks into their own functions
   begin
-    puts 'Negotiating credentials with AWS'
+    puts ('#' * 75).red; puts "\n"; archon_text; puts "\n"
+    puts ' Negotiating credentials with AWS...'.yellow
     init_cloudwatch
+    puts " Credentials found!".upcase.green
   rescue => e
-    puts 'Problem with credentials'
+    puts ' [ERROR] Problem with credentials'.red
     raise e
   end
 
   begin
-    puts 'Building host list'
+    puts "\n Building the host list...".yellow
     dynamic_host_constructor('10.0.0.74', '10.0.0.76')
-    puts 'The host list has been constructed with the following hosts:'
-    puts @addr_list.to_s + "\n"
+    puts " The host list has been constructed with the following hosts:\n".green
+    puts ' ' + @host_list.to_s + "\n\n"
+    puts (' #' * 19).green
+    puts (' #' * 4).green + ' BEGINNING MONITORING' + (' #' * 4).green + "\n\n"
   rescue => e
-    puts '[ERROR] Could not create host list'
+    puts ' [ERROR] Could not create host list'.red
     raise e
   end
 
