@@ -8,32 +8,22 @@ require 'sane_timeout'
 require_relative 'assets'
 
 ###############################################################################
-@address_range = '' # Test host for now. Add cidr for a range
 @host_list = []
 
 def host_list_constructor
-  # TODO: Build host list from file
-  nil
-end
-
-def dynamic_host_constructor(first_address, last_address)
-  # Build a custom range of IP addresses without using a netmask
-  first = IPAddress first_address
-  last = IPAddress last_address
-  @host_list = first.to(last)
-end
-
-def static_host_constructor
-  # Use @address_range to construct a list
-  ip = IPAddress @address_range
-  ip.each do |addr|
-    @host_list << addr.address
+  # Build the host list from a file
+  host_file_location = 'C:\Users\Chris\Documents\GitHub\cgminer-ruby-utils\etc\hosts.txt'
+  begin
+    File.open(host_file_location, "r") do |host|
+      host.each_line do |line|
+        line.delete!("\n")
+        @host_list << line
+      end
+    end
+  rescue => e
+    puts ' Problem creating the hosts file'.upcase.red
+    puts e
   end
-end
-
-def flush_hostlist
-  # Empty the hostlist
-  @host_list = []
 end
 
 ###############################################################################
@@ -107,7 +97,8 @@ def main
 
   begin
     puts "\n Building the host list...".yellow
-    dynamic_host_constructor('10.0.0.74', '10.0.0.76')
+    #dynamic_host_constructor('10.0.0.74', '10.0.0.76')
+    host_list_constructor
     puts " The host list has been constructed with the following hosts:\n".green
     puts ' ' + @host_list.to_s + "\n\n"
     puts (' #' * 19).green
