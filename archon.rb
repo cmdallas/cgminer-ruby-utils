@@ -1,4 +1,4 @@
-require 'aws-sdk-cloudwwatch'
+require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ec2'
 require 'cgminer/api'
 require 'ipaddress'
@@ -71,9 +71,12 @@ def query_cgminers(command)
       json_response = JSON.parse(returned_data.body.to_json)
       emitted_metric = json_response[0]["Getworks"]
       put_getwork('namespace3', 'Getworks', 'IP', addr, emitted_metric)
-      puts addr + ': ' + emitted_metric.to_s + ' '
+      now = Time.now.strftime('%a %m %d %Y %H:%M:%S').to_s
+      # add logic to append logfile
+      puts addr + ' ' + emitted_metric.to_s + ' ' + now
     rescue => e
-      print addr + ': '
+      # add logic to append logfile
+      print addr + ' ' + now
       print e
       puts "\n\n"
       next
@@ -84,9 +87,20 @@ end
 ###############################################################################
 def main
   begin
+    puts 'Negotiating credentials with AWS'
     init_cloudwatch
   rescue => e
     puts 'Problem with credentials'
+    raise e
+  end
+
+  begin
+    puts 'Building host list'
+    static_host_constructor
+    puts 'The host list has been constructed with the following hosts:'
+    puts @addr_list + "\n"
+  rescue => e
+    puts '[ERROR] Could not create host list'
     raise e
   end
 
