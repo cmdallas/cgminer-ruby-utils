@@ -2,6 +2,8 @@ require 'colorize'
 require 'ipaddress'
 require 'optparse'
 
+# Use this file to interactively create a host file
+
 ARGV << '-h' if ARGV.empty?
 
 options = {}
@@ -33,6 +35,7 @@ end.parse!
 
 @address_range = ''
 @host_list = []
+# HACK: hard coded host file location for now...
 @host_file_location = 'C:\Users\Chris\Documents\GitHub\cgminer-ruby-utils\etc\hosts.txt'
 
 ################################################################################

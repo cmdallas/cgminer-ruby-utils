@@ -12,10 +12,12 @@ require_relative 'assets'
 
 def host_list_constructor
   # Build the host list from a file
+  # HACK: hard coded host file location for now...
   host_file_location = 'C:\Users\Chris\Documents\GitHub\cgminer-ruby-utils\etc\hosts.txt'
   begin
     File.open(host_file_location, "r") do |host|
       host.each_line do |line|
+        # Remove any possible new lines from ingested hosts file
         line.delete!("\n")
         @host_list << line
       end
@@ -38,7 +40,7 @@ end
 
 # TODO: Since I dont have a miner to test this on I am using the getwork metric for testing
 def put_getwork(namespace, name_metric, dimension_name, dimension_value, datapoint_value)
-  # Dump metrics into CloudWatch
+  # Dump metrics directly into CloudWatch
   @cloudwatch.put_metric_data({
     namespace: namespace,
     metric_data: [
@@ -84,7 +86,7 @@ end
 
 ###############################################################################
 def main
-  # TODO: move first 2 begin/rescue blocks into their own functions
+  # TODO: move first 2 begin/rescue blocks into their own functions?
   begin
     puts ('#' * 75).red; puts "\n"; archon_text; puts "\n"
     puts ' Negotiating credentials with AWS...'.yellow
@@ -111,7 +113,6 @@ def main
   while true
     query_cgminers('summary')
     # query_cgminers('devs')
-    # Ideally sleep will be 15min (900)
     sleep 5
     redo
   end
