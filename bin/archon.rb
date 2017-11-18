@@ -1,3 +1,5 @@
+#!/usr/bin.env ruby
+
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ec2'
 require 'cgminer/api'

@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'colorize'
 require 'ipaddress'
 require 'optparse'
@@ -14,23 +16,23 @@ OptionParser.new do |opts|
     '--range',
     'Build the host list by specifying the first and last addresses in a range') do |v|
       options[:interactive_range_creation] = true
-  end
+    end
     opts.on(
       '-c',
       '--cidr',
       'Build the host list by specifying a subnet using CIDR notation') do |v|
         options[:interactive_cidr_creation] = true
-  end
+    end
     opts.on(
       '-f',
       '--flush',
       'Clear the host list file') do |v|
         options[:flush_hostlist] = true
-  end
+    end
     opts.on_tail('-h', '--help', 'Please use one of the options above') do
       puts opts
       exit
-  end
+    end
 end.parse!
 
 @address_range = ''
