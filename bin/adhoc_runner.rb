@@ -14,9 +14,6 @@ ARGV << '--help' if ARGV.empty?
 ERROR_MSG_HASHRATE = 'LOWHASH:'
 ERROR_MSG_HW = 'HARDWARE ERROR:'
 
-@anamolies_hashrate = []
-@host_list = []
-
 @options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: setup_hostlist.rb [options]'
@@ -27,14 +24,17 @@ OptionParser.new do |opts|
     'Host file location') do |v|
       @options[:host_file] = ARGV
     end
+  @options[:hashrate_listener] = nil
   opts.on(
     '-h',
     '--hash',
     'Listen for hashrate anamolies') do |v|
       @options[:hashrate_listener] = true
     end
+  @options[:hardware_listener] = nil
   opts.on(
     '-w',
+    '--hw',
     '--hardware',
     'Listen for hardware errors') do |v|
       @options[:hardware_listener] = true
@@ -45,6 +45,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
+@host_list = []
 def host_list_constructor
 # Build the host list from a file
   host_file = @options[:host_file][0]
@@ -75,44 +76,47 @@ def sns_send(error_msg, hosts)
   })
 end
 
+@anamolies_pool = [
+  @anamolies_hardware = [],
+  @anamolies_hashrate = []
+]
 def query_cgminers(command)
 # Query the host list constructed by the host_constructor
   command = command.to_sym
-  @anamolies_hashrate = []
+  hardware_anamolies = @anamolies_pool[0]
+  mhs15m_anamolies = @anamolies_pool[1]
 
   @host_list.each do |addr|
     begin
       host = Timeout::timeout(5) { CGMiner::API::Client.new(addr.to_s, 4028) }
       returned_data = host.send(command)
       json_response = JSON.parse(returned_data.body.to_json)
-      if  @options[:hashrate_listener]
+      if @options[:hashrate_listener]
         hashrate_listener_mh15m(addr, json_response)
       elsif @options[:hardware_listener]
-        hardware_listener
+        hardware_listener(addr, json_response)
       else
-        ARGV << '--help'
+        raise
       end
-
     rescue => e
-      # add logic to append logfile
+      # Add logic to append logfile
       puts e.backtrace
       puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
     end
   end
-  if !@anamolies_hashrate.empty?
-    puts @anamolies_hashrate
-    #sns_send(ERROR_MSG_HASHRATE, anamolies_hashrate)
+  # Search for anamolies in the @anamolies_pool
+  if !mhs15m_anamolies.empty?
+    puts mhs15m_anamolies
+    sns_send(ERROR_MSG_HASHRATE, mhs15m_anamolies)
+  elsif !hardware_anamolies.empty?
+    puts hardware_anamolies
+    sns_send(ERROR_MSG_HW, hardware_anamolies)
+  else
+    puts "No anamolies detected"
   end
 end
 
 def main
-  if ARGV[1].nil?
-    puts "\n"
-    puts '#'.red * 20
-    puts help_text
-    raise
-  end
-
   sns_constructor
 
   begin
