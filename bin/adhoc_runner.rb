@@ -4,10 +4,12 @@ require 'aws-sdk-sns'
 require 'cgminer/api'
 require 'colorize'
 require 'optparse'
+require 'pry'
 require 'sane_timeout'
 
-require_relative '../lib/alarm_definitions'
+require_relative '../lib/alarm_helper'
 require_relative '../lib/assets'
+require_relative '../lib/log_helper'
 
 ARGV << '--help' if ARGV.empty?
 
@@ -16,7 +18,7 @@ ERROR_MSG_HW = 'HARDWARE ERROR:'
 
 @options = {}
 OptionParser.new do |opts|
-  opts.banner = 'Usage: setup_hostlist.rb [options]'
+  opts.banner = 'Usage: ./adhoc_runner.rb -f /path/to/hostsfile [options]'
   @options[:host_file] = nil
   opts.on(
     '-f',
@@ -47,12 +49,12 @@ end.parse!
 
 @host_list = []
 def host_list_constructor
-# Build the host list from a file
+# build the host list from a file
   host_file = @options[:host_file][0]
   begin
     File.open(host_file, "r") do |host|
       host.each_line do |line|
-        # Remove any possible new lines from ingested hosts file
+        # remove any possible new lines from ingested hosts file
         line.delete!("\n")
         @host_list << line
       end
@@ -81,7 +83,7 @@ end
   @anamolies_hashrate = []
 ]
 def query_cgminers(command)
-# Query the host list constructed by the host_constructor
+# query the host list constructed by the host_constructor
   command = command.to_sym
   hardware_anamolies = @anamolies_pool[0]
   mhs15m_anamolies = @anamolies_pool[1]
@@ -99,12 +101,13 @@ def query_cgminers(command)
         raise
       end
     rescue => e
-      # Add logic to append logfile
+      # TODO add logic to append logfile
       puts e.backtrace
       puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
+      log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}")
     end
   end
-  # Search for anamolies in the @anamolies_pool
+  # search for anamolies in the @anamolies_pool
   if !mhs15m_anamolies.empty?
     puts mhs15m_anamolies
     sns_send(ERROR_MSG_HASHRATE, mhs15m_anamolies)
@@ -114,6 +117,21 @@ def query_cgminers(command)
   else
     puts "No anamolies detected"
   end
+  close_log_file_handle
+end
+
+def log_file_handle
+  log_file_path = "#{LOG_PATH}logs"
+  begin
+    File.open(log_file_path, 'a+')
+  rescue => e
+    puts e.backtrace
+    puts ' Problem with log file'
+  end
+end
+
+def close_log_file_handle
+  log_file_handle.close
 end
 
 def main
