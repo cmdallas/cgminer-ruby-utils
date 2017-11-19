@@ -12,7 +12,19 @@ def log_filepath_exists
   end
 end
 
-@logger = Logger.new("#{LOG_PATH}logs", 'hourly') # hourly for testing
+def log_file_handle
+  log_file_path = "#{LOG_PATH}logs"
+  begin
+    File.open(log_file_path, 'a+')
+  rescue => e
+    puts e.backtrace
+    puts ' Problem with log file'
+  end
+end
+
+def close_log_file_handle
+  log_file_handle.close
+end
 
 def main
   log_filepath_exists
