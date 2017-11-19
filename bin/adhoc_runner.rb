@@ -3,29 +3,53 @@
 require 'aws-sdk-sns'
 require 'cgminer/api'
 require 'colorize'
-require 'ipaddress'
+require 'optparse'
 require 'sane_timeout'
+
+require_relative '../lib/alarm_definitions'
+require_relative '../lib/assets'
+
+ARGV << '--help' if ARGV.empty?
 
 ERROR_MSG_HASHRATE = 'LOWHASH:'
 ERROR_MSG_HW = 'HARDWARE ERROR:'
 
+@anamolies_hashrate = []
 @host_list = []
 
-def empty_args?
-  if ARGV.empty?
-    #ARGV << 'C:\Users\Chris\Documents\GitHub\cgminer-ruby-utils\etc\hosts'
-    puts "\n\nPlease enter the location of the hosts list.\n".red
-    puts "Example usage:\n".yellow
-    puts ("Windows: ".green) + ("adhoc_runner.rb C:\\path\\to\\hostsfile".yellow)
-    puts ("Linux: ".green) + ("adhoc_runner.rb /path/to/hostsfile".yellow)
+@options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: setup_hostlist.rb [options]'
+  @options[:host_file] = nil
+  opts.on(
+    '-f',
+    '--host-file',
+    'Host file location') do |v|
+      @options[:host_file] = ARGV
+    end
+  opts.on(
+    '-h',
+    '--hash',
+    'Listen for hashrate anamolies') do |v|
+      @options[:hashrate_listener] = true
+    end
+  opts.on(
+    '-w',
+    '--hardware',
+    'Listen for hardware errors') do |v|
+      @options[:hardware_listener] = true
+    end
+  opts.on_tail('--help', 'Please use one of the options above') do
+    puts opts
+    exit
   end
-end
+end.parse!
 
 def host_list_constructor
-  # Build the host list from a file
-  host_file_location = ARGV[0]
+# Build the host list from a file
+  host_file = @options[:host_file][0]
   begin
-    File.open(host_file_location, "r") do |host|
+    File.open(host_file, "r") do |host|
       host.each_line do |line|
         # Remove any possible new lines from ingested hosts file
         line.delete!("\n")
@@ -33,8 +57,8 @@ def host_list_constructor
       end
     end
   rescue => e
+    puts e.backtrace
     puts ' Problem creating the hosts file'.upcase.red
-    puts e
   end
 end
 
@@ -44,7 +68,7 @@ def sns_constructor
   )
 end
 
-def sns_send_sms(error_msg, hosts)
+def sns_send(error_msg, hosts)
   @sns.publish({
     topic_arn: "arn:aws:sns:us-west-2:114600190083:Test_Alert",
     message: "#{error_msg} #{hosts}"
@@ -52,46 +76,43 @@ def sns_send_sms(error_msg, hosts)
 end
 
 def query_cgminers(command)
-  # Query the host list constructed by the host_constructor
+# Query the host list constructed by the host_constructor
   command = command.to_sym
-  anamolies_hashrate = []
+  @anamolies_hashrate = []
 
   @host_list.each do |addr|
     begin
       host = Timeout::timeout(5) { CGMiner::API::Client.new(addr.to_s, 4028) }
       returned_data = host.send(command)
       json_response = JSON.parse(returned_data.body.to_json)
-      uptime = json_response[0]["Elapsed"]
-      mhs_15m = json_response[0]["MHS 15m"]
-        # Allow 3 minutes before making determinations
-        if uptime < 180
-          # add logic to append logfile
-          puts "#{addr} warming up. Uptime: #{uptime}"
-        elsif uptime.to_i > 180 && mhs_15m.to_i > 11000
-          puts mhs_15m.to_s
-          puts "#{addr} #{mhs_15m} OK #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
-        elsif uptime.to_i > 180 && mhs_15m.to_i < 11000
-          puts "#{addr} #{mhs_15m} LOWHASH #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
-          anamolies_hashrate << (addr.to_s + ': ' + \
-                                 mhs_15m.to_s + ' | ' + \
-                                 uptime.to_s)
-        else
-          puts mhs_15m.to_s
-        end
+      if  @options[:hashrate_listener]
+        hashrate_listener_mh15m(addr, json_response)
+      elsif @options[:hardware_listener]
+        hardware_listener
+      else
+        ARGV << '--help'
+      end
+
     rescue => e
       # add logic to append logfile
       puts e.backtrace
       puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
     end
   end
-  if !anamolies_hashrate.empty?
-    puts anamolies_hashrate
-    sns_send_sms(ERROR_MSG_HASHRATE, anamolies_hashrate)
+  if !@anamolies_hashrate.empty?
+    puts @anamolies_hashrate
+    #sns_send(ERROR_MSG_HASHRATE, anamolies_hashrate)
   end
 end
 
 def main
-  empty_args?
+  if ARGV[1].nil?
+    puts "\n"
+    puts '#'.red * 20
+    puts help_text
+    raise
+  end
+
   sns_constructor
 
   begin

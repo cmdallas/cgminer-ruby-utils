@@ -1,3 +1,9 @@
+def help_text
+  puts "Example usage:\n".yellow
+  puts ("Windows: ".green) + ("./adhoc_runner.rb C:\\path\\to\\hostsfile [options]".yellow)
+  puts ("Linux: ".green) + ("./adhoc_runner.rb /path/to/hostsfile [options]".yellow)
+end
+
 def archon_text
   print <<EOF
   .d8b.       d8888b.       .o88b.      db   db       .d88b.       d8b   db
