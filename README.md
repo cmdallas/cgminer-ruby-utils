@@ -1,6 +1,7 @@
 # cgminer-ruby-utils
 
 [![N|Solid](https://tinyurl.com/yabgovoj)](https://en.bitcoin.it/wiki/Main_Page)
+
 Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
 
 # How to:
@@ -29,5 +30,5 @@ Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
     ```
 4. Configure cron to automatically fire the script every N minutes
 
-# Warning:
-- AWS SNS topic is currently hardcoded in 'adhoc_runner.rb' hosts file. This can be done manually or with the 'setup_hostlist.rb' script
+**Warning:**
+- AWS SNS topic is currently hardcoded in 'adhoc_runner.rb' hosts file.
