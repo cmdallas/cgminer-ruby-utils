@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
-require 'logger'
 
 LOG_PATH = File.expand_path('/') + 'var/log/cgminer-ruby-utils/'
 

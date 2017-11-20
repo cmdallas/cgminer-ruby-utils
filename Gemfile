@@ -1,3 +1,7 @@
 source 'https://rubygems.org'
 
-gemspec
+gem 'aws-sdk-sns'
+gem 'cgminer-api'
+gem 'colorize'
+gem 'pry'
+gem 'sane_timeout'
