@@ -18,7 +18,7 @@ ERROR_MSG_HW = 'HARDWARE ERROR:'
 
 @options = {}
 OptionParser.new do |opts|
-  opts.banner = 'Usage: ./adhoc_runner.rb -f /path/to/hostsfile [options]'
+  opts.banner = "\nUsage: ./adhoc_runner.rb -f /path/to/hostsfile [option]"
   @options[:host_file] = nil
   opts.on(
     '-f',
@@ -28,8 +28,8 @@ OptionParser.new do |opts|
     end
   @options[:hashrate_listener] = nil
   opts.on(
-    '-h',
-    '--hash',
+    '--h15m',
+    '--hash15m',
     'Listen for hashrate anamolies') do |v|
       @options[:hashrate_listener] = true
     end
@@ -101,7 +101,6 @@ def query_cgminers(command)
         raise
       end
     rescue => e
-      # TODO add logic to append logfile
       puts e.backtrace
       puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
       log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}")
