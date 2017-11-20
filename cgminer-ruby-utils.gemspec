@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = '0.1'
   spec.authors       = ['Chris Dallas']
   spec.email         = ['self@chrisdallas.tech']
-  spec.description   = %q{Query cgminer API and send metrics to AWS CloudWatch}
+  spec.description   = %q{Query cgminer API}
   spec.summary       = %q{cgminer-ruby-utils}
   spec.homepage      = ''
   spec.license       = 'MIT'
