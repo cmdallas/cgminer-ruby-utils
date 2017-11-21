@@ -100,10 +100,14 @@ def query_cgminers(command)
       else
         raise
       end
+    rescue Timeout::Error
+      log_file_handle.write("#{addr} TIMEOUT #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
+      next
     rescue => e
       puts e.backtrace
-      puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}"
-      log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}")
+      puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n"
+      log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
+      next
     end
   end
   # search for anamolies in the @anamolies_pool
