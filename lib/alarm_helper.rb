@@ -8,7 +8,7 @@ def hardware_listener(addr, json_response)
     log_file_handle.write("#{addr} OK #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
   else
     log_file_handle.write("#{addr} HWERROR #{hw_errors} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
-    @anamolies_pool[0] << "#{addr} HWERROR #{hw_errors}"
+    @anomaly_pool[0] << "#{addr} HWERROR #{hw_errors}"
   end
 end
 
@@ -22,9 +22,14 @@ def hashrate_listener_mh15m(addr, json_response)
     log_file_handle.write("#{addr} OK mhs15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
   elsif uptime.to_i > 180 && mhs_15m.to_i < 11000
     puts "#{addr} LOWHASH mhs_15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n"
-    @anamolies_pool[1] << "#{addr}: #{mhs_15m} | #{uptime}"
+    @anomaly_pool[1] << "#{addr}: #{mhs_15m} | #{uptime}"
     log_file_handle.write("#{addr} LOWHASH mhs_15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
   else
     puts mhs_15m
   end
+end
+
+def timeout_listener(addr)
+  @anomaly_pool[2] << "#{addr} #{Time.now.strftime('%m-%d %H:%M')}"
+  log_file_handle.write("#{addr} TIMEOUT #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
 end

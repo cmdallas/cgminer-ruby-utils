@@ -9,12 +9,11 @@ require 'sane_timeout'
 
 require_relative '../lib/alarm_helper'
 require_relative '../lib/assets'
+require_relative '../lib/aws_helper'
+require_relative '../lib/constants'
 require_relative '../lib/log_helper'
 
 ARGV << '--help' if ARGV.empty?
-
-ERROR_MSG_HASHRATE = 'LOWHASH:'
-ERROR_MSG_HW = 'HARDWARE ERROR:'
 
 @options = {}
 OptionParser.new do |opts|
@@ -30,7 +29,7 @@ OptionParser.new do |opts|
   opts.on(
     '--h15m',
     '--hash15m',
-    'Listen for hashrate anamolies') do |v|
+    'Listen for hashrate anomalies') do |v|
       @options[:hashrate_listener] = true
     end
   @options[:hardware_listener] = nil
@@ -65,33 +64,22 @@ def host_list_constructor
   end
 end
 
-def sns_constructor
-  @sns = Aws::SNS::Client.new(
-    region: 'us-west-2'
-  )
-end
-
-def sns_send(error_msg, hosts)
-  @sns.publish({
-    topic_arn: "arn:aws:sns:us-west-2:114600190083:Test_Alert",
-    message: "#{error_msg} #{hosts}"
-  })
-end
-
-@anamolies_pool = [
-  @anamolies_hardware = [],
-  @anamolies_hashrate = []
+@anomaly_pool = [
+  @hardware_anomalies = [],
+  @hashrate_anomalies = [],
+  @timeout_anomalies = []
 ]
 def query_cgminers(command)
 # query the host list constructed by the host_constructor
   command = command.to_sym
-  hardware_anamolies = @anamolies_pool[0]
-  mhs15m_anamolies = @anamolies_pool[1]
+  hardware_anomalies = @anomaly_pool[0]
+  mhs15m_anomalies = @anomaly_pool[1]
+  timeout_anomalies = @anomaly_pool[2]
 
   @host_list.each do |addr|
     begin
-      host = Timeout::timeout(5) { CGMiner::API::Client.new(addr.to_s, 4028) }
-      returned_data = host.send(command)
+      host = CGMiner::API::Client.new(addr.to_s, 4028)
+      returned_data = Timeout::timeout(3) { host.send(command) }
       json_response = JSON.parse(returned_data.body.to_json)
       if @options[:hashrate_listener]
         hashrate_listener_mh15m(addr, json_response)
@@ -101,37 +89,34 @@ def query_cgminers(command)
         raise
       end
     rescue Timeout::Error
-      log_file_handle.write("#{addr} TIMEOUT #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
+      timeout_listener(addr)
       next
     rescue => e
-      puts e.backtrace
       puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n"
       log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
       next
     end
   end
-  # search for anamolies in the @anamolies_pool
-  if !mhs15m_anamolies.empty?
-    puts mhs15m_anamolies
-    sns_send(ERROR_MSG_HASHRATE, mhs15m_anamolies)
-  elsif !hardware_anamolies.empty?
-    puts hardware_anamolies
-    sns_send(ERROR_MSG_HW, hardware_anamolies)
+  # search for anomalies in the @anomalies_pool
+  # TODO: this needs to be more dynamic
+  if !mhs15m_anomalies.empty?
+    puts mhs15m_anomalies
+    sns_send(ERROR_MSG_HASHRATE, mhs15m_anomalies)
+  elsif !hardware_anomalies.empty?
+    puts hardware_anomalies
+    sns_send(ERROR_MSG_HW, hardware_anomalies)
+  elsif !timeout_anomalies.empty?
+    puts timeout_anomalies
+    sns_send(ERROR_MSG_TIMEOUT, timeout_anomalies)
   else
-    puts "No anamolies detected"
+    puts "Done"
   end
   close_log_file_handle
 end
 
 def main
-  sns_constructor
-
-  begin
-    host_list_constructor
-  rescue => e
-    puts e
-  end
-
+  sns_client_constructor
+  host_list_constructor
   begin
     query_cgminers('summary')
   rescue => e
