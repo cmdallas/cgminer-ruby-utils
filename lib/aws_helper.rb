@@ -18,7 +18,7 @@ end
 def sns_send(error_msg, hosts)
   begin
     @sns.publish({
-      topic_arn: "arn:aws:sns:us-west-2:114600190083:Test_Alert",
+      topic_arn: "arn:aws:sns:us-west-2:114600190083:Alert",
       message: "#{error_msg} #{hosts}"
     })
   rescue Aws::Errors::MissingCredentialsError

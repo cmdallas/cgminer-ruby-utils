@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'aws-sdk-sns'
 require 'cgminer/api'
 require 'colorize'
 require 'optparse'
@@ -64,18 +63,9 @@ def host_list_constructor
   end
 end
 
-@anomaly_pool = [
-  @hardware_anomalies = [],
-  @hashrate_anomalies = [],
-  @timeout_anomalies = []
-]
 def query_cgminers(command)
 # query the host list constructed by the host_constructor
   command = command.to_sym
-  hardware_anomalies = @anomaly_pool[0]
-  mhs15m_anomalies = @anomaly_pool[1]
-  timeout_anomalies = @anomaly_pool[2]
-
   @host_list.each do |addr|
     begin
       host = CGMiner::API::Client.new(addr.to_s, 4028)
@@ -92,22 +82,23 @@ def query_cgminers(command)
       timeout_listener(addr)
       next
     rescue => e
-      puts "#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n"
-      log_file_handle.write("#{addr} FATAL #{e} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
+      fatal_listener(addr, e)
       next
     end
   end
-  # search for anomalies in the @anomalies_pool
   # TODO: this needs to be more dynamic
-  if !mhs15m_anomalies.empty?
-    puts mhs15m_anomalies
-    sns_send(ERROR_MSG_HASHRATE, mhs15m_anomalies)
-  elsif !hardware_anomalies.empty?
-    puts hardware_anomalies
-    sns_send(ERROR_MSG_HW, hardware_anomalies)
-  elsif !timeout_anomalies.empty?
-    puts timeout_anomalies
-    sns_send(ERROR_MSG_TIMEOUT, timeout_anomalies)
+  if !@hashrate_anomalies.empty?
+    puts @hashrate_anomalies
+    sns_send(ERROR_MSG_HASHRATE, @hashrate_anomalies)
+  elsif !@hardware_anomalies.empty?
+    puts @hardware_anomalies
+    sns_send(ERROR_MSG_HW, @hardware_anomalies)
+  elsif !@timeout_anomalies.empty?
+    puts @timeout_anomalies
+    sns_send(ERROR_MSG_TIMEOUT, @timeout_anomalies)
+  elsif !@fatal_anomalies.empty?
+    puts @fatal_anomalies
+    sns_send(ERROR_MSG_FATAL, @fatal_anomalies)
   else
     puts "Done"
   end
@@ -118,7 +109,7 @@ def main
   sns_client_constructor
   host_list_constructor
   begin
-    query_cgminers('summary')
+    query_cgminers(SUMMARY)
   rescue => e
     puts e
   end
