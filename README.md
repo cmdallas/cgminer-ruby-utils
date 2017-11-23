@@ -21,14 +21,14 @@ Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
     # create a host list using a first-to-last range
     ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r '10.0.0.1,10.0.0.10'
     ```
-3. Use the 'adhoc_runer.rb' script to query all of the hosts in the host file
+3. Use the 'fleet_warden.rb' script to query all of the hosts in the host file
 
-    **Examples using adhoc_runner.rb**
+    **Examples using fleet_warden.rb**
     ```
     # check to see if 15 minute average hashrate is above 11TH/s
-    ruby ~./cgminer-ruby-utils/bin/adhoc_runner.rb -f ~/cgminer-ruby-utils/hosts --hash15m
+    ruby ~./cgminer-ruby-utils/bin/fleet_warden.rb -f ~/cgminer-ruby-utils/hosts --hash15m
     ```
 4. Configure cron to automatically fire the script every N minutes
 
 **Warning:**
-- AWS SNS topic is currently hardcoded in 'adhoc_runner.rb' hosts file.
+- AWS SNS topic is currently hardcoded in 'fleet_warden.rb' hosts file.
