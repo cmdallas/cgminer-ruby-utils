@@ -87,9 +87,9 @@ def query_cgminers(command)
     end
   end
   # TODO: this needs to be more dynamic
-  if !@hashrate_anomalies.empty?
-    puts @hashrate_anomalies
-    sns_send(ERROR_MSG_HASHRATE, @hashrate_anomalies)
+  if !@hashrate_mh15m_anomalies.empty?
+    puts @hashrate_mh15m_anomalies
+    sns_send(ERROR_MSG_HASHRATE, @hashrate_mh15m_anomalies)
   elsif !@hardware_anomalies.empty?
     puts @hardware_anomalies
     sns_send(ERROR_MSG_HW, @hardware_anomalies)

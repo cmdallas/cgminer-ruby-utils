@@ -3,7 +3,7 @@
 require_relative 'log_helper'
 
 @hardware_anomalies = []
-@hashrate_anomalies = []
+@hashrate_mh15m_anomalies = []
 @timeout_anomalies = []
 @fatal_anomalies = []
 
@@ -32,7 +32,7 @@ def hashrate_listener_mh15m(addr, json_response)
     log_file_handle.write("#{addr} OK mhs15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
   elsif uptime.to_i > 180 && mhs_15m.to_i < 11000
     puts "#{addr} LOWHASH mhs_15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n"
-    @hashrate_anomalies << "#{addr}: #{mhs_15m} | #{uptime}"
+    @hashrate_mh15m_anomalies << "#{addr}: #{mhs_15m} | #{uptime}"
     log_file_handle.write("#{addr} LOWHASH mhs_15m: #{mhs_15m} #{Time.now.strftime('%m %d %Y %H:%M:%S')}\n")
   else
     puts mhs_15m

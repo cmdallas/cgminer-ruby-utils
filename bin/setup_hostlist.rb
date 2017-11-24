@@ -29,7 +29,8 @@ OptionParser.new do |opts|
   @options[:flush] = nil
   opts.on(
     '--flush',
-    'Clear the host list file') do |v|
+    'Clear the host list file'
+    'Example usage: ./bin/setup_hostlist.rb -f hosts --flush') do |v|
       @options[:flush] = true
   end
   @options[:range_creation] = nil
@@ -74,7 +75,7 @@ end
 
 def flush_hostlist
   # Empty the hostlist
-  puts "\nClearing all entries in the hostlist located at: #{@host_file_location}".upcase.yellow
+  puts "\nClearing all entries in the hostlist located at: #{@host_file_location}".yellow
   @host_list = []
   edit_host_list
   puts @host_list
