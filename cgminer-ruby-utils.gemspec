@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'archon.rb'
+require 'lib/constants'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cgminer-ruby-utils'
-  spec.version       = '0.1'
+  spec.version       = VERSION
   spec.authors       = ['Chris Dallas']
   spec.email         = ['self@chrisdallas.tech']
   spec.description   = %q{Query cgminer API}

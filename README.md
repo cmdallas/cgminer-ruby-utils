@@ -5,11 +5,11 @@
 Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
 
 # How to:
-1. Run the following shell script to prepare your device to use cgminer-ruby-utils. This script is configured for debian based systems:
+1. Run the following shell script to prepare your device to use cgminer-ruby-utils. This script is configured for yum based systems:
     ```
-    wget https://raw.githubusercontent.com/cmdallas/mining-scripts/master/bootstrap_ruby_utils_debian.sh
+    wget https://raw.githubusercontent.com/cmdallas/mining-scripts/master/bootstrap/bootstrap_ruby_utils_yum.sh
     bootstrap=$(basename $_)
-    chmod +x $bootstrap && sudo ./$bootstrap
+    chmod +x $bootstrap && ./$bootstrap
     ```
 2. Create a hosts file that is delimited by new lines. This can be done manually or with the 'setup_hostlist.rb' script.
 
@@ -31,4 +31,4 @@ Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
 4. Configure cron to automatically fire the script every N minutes
 
 **Warning:**
-- AWS SNS topic is currently hardcoded in 'fleet_warden.rb' hosts file.
+- AWS SNS topic is currently hardcoded in 'fleet_warden.rb' hosts file. You will need to change this.
