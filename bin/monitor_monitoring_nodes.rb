@@ -2,6 +2,13 @@
 
 require_relative '../lib/aws_helper'
 
+def cpu_check
+# total cpu used as a percentage
+  cpu_used = `mpstat | grep -A 5 "%idle" | tail -n 1 | awk '{print 100 - $12}'a`
+  cpu_used = cpu_used.to_f
+  put_cloudwatch_data('Monitor Servers', 'CpuUsed', 'Host IP', ip_fetcher, cpu_used)
+end
+
 def disk_check
 # disk used as a percentage
   disk_used = `df -h | awk '$NF=="/"{printf "%s", $5}'`
@@ -26,6 +33,7 @@ def main
   cloudwatch_client_constructor
   disk_check
   memory_check
+  cpu_check
 end
 
 if __FILE__ == $0
