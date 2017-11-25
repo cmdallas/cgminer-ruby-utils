@@ -19,7 +19,7 @@ Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
     ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -c '10.0.0.1/24'
 
     # create a host list using a first-to-last range
-    ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r '10.0.0.1,10.0.0.10'
+    ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r 
     ```
 3. Use the 'fleet_warden.rb' script to query all of the hosts in the host file
 

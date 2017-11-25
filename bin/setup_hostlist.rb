@@ -29,7 +29,7 @@ OptionParser.new do |opts|
   @options[:flush] = nil
   opts.on(
     '--flush',
-    'Clear the host list file'
+    'Clear the host list file',
     'Example usage: ./bin/setup_hostlist.rb -f hosts --flush') do |v|
       @options[:flush] = true
   end
@@ -52,10 +52,10 @@ end.parse!
 ################################################################################
 # Interactive functions
 def interactive_range_creation
-  print 'Enter first host (ex. 10.0.0.1): '
-  first = gets.to_s.chomp
-  print 'Enter last host (ex. 10.0.0.254): '
-  last = gets.to_s.chomp
+  puts 'Enter first host (ex. 10.0.0.1):'
+  first = $stdin.gets.to_s.chomp
+  puts 'Enter last host (ex. 10.0.0.254):'
+  last = $stdin.gets.to_s.chomp
   dynamic_host_constructor(first, last)
   edit_host_list
   puts @host_list
