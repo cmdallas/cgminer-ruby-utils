@@ -2,7 +2,7 @@
 
 require 'cgminer/api'
 require 'colorize'
-require 'optparse'
+require 'getoptlong'
 require 'pry'
 require 'sane_timeout'
 
@@ -14,41 +14,47 @@ require_relative '../lib/log_helper'
 
 ARGV << '--help' if ARGV.empty?
 
-@options = {}
-OptionParser.new do |opts|
-  opts.banner = "\nUsage: ./adhoc_runner.rb -f /path/to/hostsfile [option]"
-  @options[:host_file] = nil
-  opts.on(
-    '-f',
-    '--host-file',
-    'Host file location') do |v|
-      @options[:host_file] = ARGV
-    end
-  @options[:hashrate_listener] = nil
-  opts.on(
-    '--h15m',
-    '--hash15m',
-    'Listen for hashrate anomalies') do |v|
-      @options[:hashrate_listener] = true
-    end
-  @options[:hardware_listener] = nil
-  opts.on(
-    '-w',
-    '--hw',
-    '--hardware',
-    'Listen for hardware errors') do |v|
-      @options[:hardware_listener] = true
-    end
-  opts.on_tail('--help', 'Please use one of the options above') do
-    puts opts
-    exit
+opts = GetoptLong.new(
+  [ '--hash15m', '--h15m', GetoptLong::NO_ARGUMENT],
+  [ '--hardware', '--hw', GetoptLong::NO_ARGUMENT],
+  [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
+  [ '--host-file', '-f', GetoptLong::REQUIRED_ARGUMENT],
+)
+
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+    puts <<-EOF
+
+Usage: setup_hostlist.rb -f /path/to/host_file [-c 10.0.0.1/24]
+
+-c, --command
+    Specify the command to send to the cgminer API
+    (NOT YET IMPLEMENTED)
+
+-f, --host-file:
+    Specify the location of the host file
+
+--h15m, --hash15m:
+    Listen for hashrate anomalies using a rolling 15 minute average
+
+--hw, --hardware
+    Listen for hardware errors
+
+      EOF
+  when '--hash15m'
+    @hash15m_arg = arg
+  when '--hardware'
+    @hardware_arg = arg
+  when '--host-file'
+    @host_file_arg = arg
   end
-end.parse!
+end
 
 @host_list = []
 def host_list_constructor
 # build the host list from a file
-  host_file = @options[:host_file][0]
+  host_file = @host_file_arg
   begin
     File.open(host_file, "r") do |host|
       host.each_line do |line|
@@ -57,9 +63,8 @@ def host_list_constructor
         @host_list << line
       end
     end
-  rescue => e
-    puts e.backtrace
-    puts ' Problem creating the hosts file'.upcase.red
+  rescue
+    puts 'Problem creating the hosts file. Was one specified?'.upcase.red
   end
 end
 
@@ -71,9 +76,9 @@ def query_cgminers(command)
       host = CGMiner::API::Client.new(addr.to_s, 4028)
       returned_data = Timeout::timeout(3) { host.send(command) }
       json_response = JSON.parse(returned_data.body.to_json)
-      if @options[:hashrate_listener]
+      if @hash_15arg
         hashrate_listener_mh15m(addr, json_response)
-      elsif @options[:hardware_listener]
+      elsif @hardware_arg
         hardware_listener(addr, json_response)
       else
         raise
@@ -86,22 +91,8 @@ def query_cgminers(command)
       next
     end
   end
-  # TODO: this needs to be more dynamic
-  if !@hashrate_mh15m_anomalies.empty?
-    puts @hashrate_mh15m_anomalies
-    sns_send(ERROR_MSG_HASHRATE, @hashrate_mh15m_anomalies)
-  elsif !@hardware_anomalies.empty?
-    puts @hardware_anomalies
-    sns_send(ERROR_MSG_HW, @hardware_anomalies)
-  elsif !@timeout_anomalies.empty?
-    puts @timeout_anomalies
-    sns_send(ERROR_MSG_TIMEOUT, @timeout_anomalies)
-  elsif !@fatal_anomalies.empty?
-    puts @fatal_anomalies
-    sns_send(ERROR_MSG_FATAL, @fatal_anomalies)
-  else
-    puts "Done"
-  end
+  anomaly_collector
+  alarm_dispatcher
   close_log_file_handle
 end
 

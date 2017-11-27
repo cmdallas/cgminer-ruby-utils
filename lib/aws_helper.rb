@@ -4,7 +4,7 @@ require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ec2'
 require 'aws-sdk-sns'
 
-# CloudWatch
+### CloudWatch
 def cloudwatch_client_constructor
   credentials = Aws::SharedCredentials.new(profile_name: 'default')
   Aws::EC2::Client.new(
@@ -36,7 +36,7 @@ def put_cloudwatch_data(namespace, name_metric, dimension_name, dimension_value,
   })
 end
 
-# SNS
+### SNS
 def sns_client_constructor
   @sns = Aws::SNS::Client.new(
     region: 'us-west-2'

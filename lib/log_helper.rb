@@ -17,7 +17,7 @@ def log_file_handle
     File.open(log_file_path, 'a+')
   rescue => e
     puts e.backtrace
-    puts ' Problem with log file'
+    puts 'Problem with log file'
   end
 end
 

@@ -1,54 +1,54 @@
 #!/usr/bin/env ruby
 
 require 'colorize'
+require 'getoptlong'
 require 'ipaddress'
-require 'optparse'
 
 # Use this file to interactively create a host file
 
 ARGV << '-h' if ARGV.empty?
 
-@options = {}
-OptionParser.new do |opts|
-  opts.banner = "\nUsage: setup_hostlist.rb -f /path/to/host_file [-c 10.0.0.1/24],\
-  [-r TODO], [--flush]"
-  @options[:cidr_creation] = nil
-  opts.on(
-    '-c',
-    '--cidr',
-    'Build the host list by specifying a subnet using CIDR notation') do |v|
-      @options[:cidr_creation] = ARGV
-  end
-  @options[:hosts] = nil
-  opts.on(
-    '-f',
-    '--host-file',
-    'host file location') do |v|
-      @options[:hosts] = ARGV
-  end
-  @options[:flush] = nil
-  opts.on(
-    '--flush',
-    'Clear the host list file',
-    'Example usage: ./bin/setup_hostlist.rb -f hosts --flush') do |v|
-      @options[:flush] = true
-  end
-  @options[:range_creation] = nil
-  opts.on(
-    '-r',
-    '--range',
-    'Build the host list by specifying the first and last addresses in a range') do |v|
-      @options[:range_creation] = true
-    end
-    opts.on_tail('-h', '--help', 'Please use one of the options above') do
-      puts opts
-      exit
-    end
-end.parse!
+opts = GetoptLong.new(
+  [ '--cidr', '-c', GetoptLong::OPTIONAL_ARGUMENT],
+  [ '--flush', GetoptLong::NO_ARGUMENT],
+  [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
+  [ '--host-file', '-f', GetoptLong::REQUIRED_ARGUMENT],
+  [ '--range', '-r', GetoptLong::OPTIONAL_ARGUMENT]
+)
 
-@host_file_location = @options[:hosts][0]
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+    puts <<-EOF
+
+Usage: setup_hostlist.rb -f /path/to/host_file [-c 10.0.0.1/24]
+
+-c, --cidr:
+    Build the host list by specifying a subnet using CIDR notation
+
+-f, --host-file:
+    Specify the location of the host file
+
+--flush:
+    Clear the host list file.
+        Example usage: ./bin/setup_hostlist.rb -f hosts --flush
+
+-r, --range:
+    Build the host list by specifying the first and last addresses in a range
+
+      EOF
+  when '--cidr'
+    @cidr_arg = arg
+  when '--host-file'
+    @host_file_arg = arg
+  when '--flush'
+    @flush = true
+  when '--range'
+    @range_arg = arg
+  end
+end
+
 @host_list = []
-
 ################################################################################
 # Interactive functions
 def interactive_range_creation
@@ -65,7 +65,7 @@ end
 @address_range = ''
 def interactive_cidr_creation
   print 'Enter network (ex. 10.0.0.1/24) '
-  subnet = @options[:cidr_creation][1]
+  subnet = @cidr_arg
   @address_range = subnet
   static_host_constructor
   edit_host_list
@@ -73,13 +73,18 @@ def interactive_cidr_creation
   puts 'Host list successfully editted!'.upcase.green
 end
 
+@hostfile_problem = nil
 def flush_hostlist
   # Empty the hostlist
-  puts "\nClearing all entries in the hostlist located at: #{@host_file_location}".yellow
+  puts "\nClearing all entries in the hostlist located at: #{@host_file_arg}".yellow
   @host_list = []
   edit_host_list
   puts @host_list
-  puts "\nHost list successfully cleared!".upcase.green
+  if @hostfile_problem
+    raise 'Failed to flush the host list!'.upcase.red
+  else
+    puts "\nHost list successfully cleared!".upcase.green
+  end
 end
 
 ################################################################################
@@ -102,21 +107,22 @@ end
 def edit_host_list
 # Build the host list from a file
   begin
-    File.open(@host_file_location, "w") do |file|
+    File.open(@host_file_arg, "w") do |file|
       @host_list.each { |host| file.puts(host) }
       end
   rescue => e
-    puts ' Problem creating the hosts file'.upcase.red
+    puts 'Problem opening the hosts file'.upcase.red
     puts e
+    @hostfile_problem = true
   end
 end
 
 if __FILE__ == $0
-  if @options[:range_creation]
+  if @range_arg
     interactive_range_creation
-  elsif @options[:cidr_creation]
+  elsif @cidr_arg
     interactive_cidr_creation
-  elsif @options[:flush]
+  elsif @flush
     flush_hostlist
   end
 end

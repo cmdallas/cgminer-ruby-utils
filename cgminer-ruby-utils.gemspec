@@ -5,7 +5,7 @@ require 'lib/constants'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cgminer-ruby-utils'
-  spec.version       = VERSION
+  spec.version       = CGMINER_RUBY_UTILS_VERSION
   spec.authors       = ['Chris Dallas']
   spec.email         = ['self@chrisdallas.tech']
   spec.description   = %q{Query cgminer API}

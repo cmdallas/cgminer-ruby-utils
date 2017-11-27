@@ -24,6 +24,7 @@ def memory_check
 end
 
 def ip_fetcher
+# fetch server ip
   # server_ip = `/sbin/ifconfig eth0 | grep 'inet addr' | cut -d: -f2 | awk '{print $1}'` # debian
   server_ip = `hostname -i | awk '{print $3}'` # centos
   server_ip = (server_ip.gsub("\n", '')).to_s
