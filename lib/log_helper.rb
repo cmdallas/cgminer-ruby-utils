@@ -14,7 +14,9 @@ end
 def log_file_handle
   log_file_path = "#{LOG_PATH}logs"
   begin
-    File.open(log_file_path, 'a+')
+    log = File.open(log_file_path, 'a+')
+    log.sync = true
+    log
   rescue => e
     puts e.backtrace
     puts 'Problem with log file'
