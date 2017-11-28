@@ -93,7 +93,6 @@ def query_cgminers(command)
   end
   anomaly_collector
   alarm_dispatcher
-  close_log_file_handle
 end
 
 def main
