@@ -26,7 +26,7 @@ opts.each do |opt, arg|
   when '--help'
     puts <<-EOF
 
-Usage: setup_hostlist.rb -f /path/to/host_file [-c 10.0.0.1/24]
+Usage: fleet_warden.rb -f /path/to/host_file [-c 10.0.0.1/24]
 
 -c, --command
     Specify the command to send to the cgminer API
@@ -76,7 +76,7 @@ def query_cgminers(command)
       host = CGMiner::API::Client.new(addr.to_s, 4028)
       returned_data = Timeout::timeout(3) { host.send(command) }
       json_response = JSON.parse(returned_data.body.to_json)
-      if @hash_15arg
+      if @hash15m_arg
         hashrate_listener_mh15m(addr, json_response)
       elsif @hardware_arg
         hardware_listener(addr, json_response)

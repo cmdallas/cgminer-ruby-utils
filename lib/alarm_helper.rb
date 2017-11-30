@@ -23,8 +23,6 @@ def alarm_dispatcher
       when :fatal_anomalies
         puts @fatal_anomalies
         sns_send(ERROR_MSG_FATAL, @fatal_anomalies)
-      else
-        puts 'testing'
       end
     end
   end
