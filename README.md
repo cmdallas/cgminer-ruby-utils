@@ -4,7 +4,10 @@
 
 Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
 
-# How to:
+# How To:
+**Example Topology:**
+          ![N|Solid](https://s3-us-west-2.amazonaws.com/cgminer-ruby-utils/example_topology.png)
+
 1. Run the following shell script to prepare your device to use cgminer-ruby-utils. This script is configured for yum based systems:
     ```
     wget https://raw.githubusercontent.com/cmdallas/mining-scripts/master/bootstrap/bootstrap_ruby_utils_yum.sh
@@ -31,4 +34,4 @@ Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
 4. Configure cron to automatically fire the script every N minutes
 
 **Warning:**
-- AWS SNS topic is currently hardcoded in 'fleet_warden.rb' hosts file. You will need to change this.
+- AWS SNS topic/region is currently hardcoded in 'aws_helper.rb'. You will need to change this!
