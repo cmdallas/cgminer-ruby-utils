@@ -26,7 +26,7 @@ opts.each do |opt, arg|
   when '--help'
     puts <<-EOF
 
-Usage: fleet_warden.rb -f /path/to/host_file [-c 10.0.0.1/24]
+Usage: fleet_warden.rb -f /path/to/host_file --hash15m
 
 -c, --command
     Specify the command to send to the cgminer API

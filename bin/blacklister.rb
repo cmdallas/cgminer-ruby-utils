@@ -15,6 +15,8 @@ opts.each do |opt, arg|
   when '--help'
     puts <<-EOF
 
+Usage: blacklister.rb -f hosts --ip '10.0.0.74 10.0.0.75'
+
 -f, --host-file:
     Specify the location of the host file
 
@@ -25,16 +27,32 @@ opts.each do |opt, arg|
   when '--host-file'
     @blacklist_host_file_arg = arg
   when '--ip'
-    @blacklist_ip = arg
+    @blacklisted_ips = arg.split.map { |ip| ip + "\n" }
   end
 end
 
-def adhoc_blacklist
-  hosts = File.read(@blacklist_host_file_arg)
-  blacklist = hosts.gsub(/#{@blacklist_ip}\n/, '')
-  File.write(@blacklist_host_file_arg, blacklist)
+def blacklist
+  begin
+    updated_hosts = String.new
+    host_file = File.readlines(@blacklist_host_file_arg)
+    host_file.each do |line|
+      if @blacklisted_ips.include?(line)
+        line.sub!(line, '')
+      else
+        updated_hosts << line
+      end
+    end
+  end
+  host_file = File.open(@blacklist_host_file_arg, 'w')
+  host_file.write(updated_hosts)
 end
 
-if @blacklist_ip
-  adhoc_blacklist
+def main
+  if @blacklisted_ips
+    blacklist
+  end
+end
+
+if __FILE__ == $0
+  main
 end
