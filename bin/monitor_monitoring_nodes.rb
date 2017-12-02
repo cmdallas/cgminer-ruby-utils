@@ -31,6 +31,7 @@ def ip_fetcher
 end
 
 def main
+  cloudwatch_conf_reader
   cloudwatch_client_constructor
   disk_check
   memory_check

@@ -96,6 +96,7 @@ def query_cgminers(command)
 end
 
 def main
+  sns_conf_reader
   sns_client_constructor
   host_list_constructor
   begin
