@@ -2,11 +2,12 @@
 
 [![N|Solid](https://tinyurl.com/yabgovoj)](https://en.bitcoin.it/wiki/Main_Page)
 
-Ruby utilities to monitor cryptocurrency mining devices via the cgminer api.
+**Ruby utilities to monitor cryptocurrency mining devices via the cgminer api and dispatch alerts using AWS SNS.**
 
 # How To:
 **Example Topology:**
-![N|Solid](https://s3-us-west-2.amazonaws.com/cgminer-ruby-utils/example_topology.png)
+
+[![N|Solid](https://s3-us-west-2.amazonaws.com/cgminer-ruby-utils/example_topology.png)]()
 
 1. Run the following shell script to prepare your device to use cgminer-ruby-utils. This script is configured for yum based systems:
     ```

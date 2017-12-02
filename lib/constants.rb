@@ -6,6 +6,7 @@ DEVS = 'devs'
 LCD = 'lcd'
 POOLS = 'pools'
 STATS = 'stats'
+SWITCH_POOL = 'switchpool'
 SUMMARY = 'summary'
 VERSION = 'version'
 

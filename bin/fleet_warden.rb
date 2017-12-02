@@ -53,7 +53,7 @@ end
 
 @host_list = []
 def host_list_constructor
-# build the host list from a file
+# push the host list from a file into an array
   host_file = @host_file_arg
   begin
     File.open(host_file, "r") do |host|
