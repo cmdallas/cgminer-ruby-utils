@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'cgminer/api'
 require 'colorize'
 require 'fileutils'
 require 'getoptlong'
 require 'pry'
 require 'sane_timeout'
 
+require_relative '../lib/api'
 require_relative '../lib/assets'
 require_relative '../lib/constants'
 
