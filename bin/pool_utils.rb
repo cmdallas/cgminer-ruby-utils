@@ -39,10 +39,10 @@ Usage: pool_utils.rb -c /path/to/cgminer.conf -f /path/to/host_file [option]
     Specify the location of the cgminer.conf file
 
 --disable-pool, --disable:
-    (NOT YET IMPLEMENTED)
+    Usage: pool_utils.rb -f hosts --disable-pool '3'
 
 --enable-pool, --enable:
-    (NOT YET IMPLEMENTED)
+    Usage: pool_utils.rb -f hosts --enable-pool '3'
 
 --help, -h:
     Show help menu
@@ -66,10 +66,12 @@ Usage: pool_utils.rb -c /path/to/cgminer.conf -f /path/to/host_file [option]
     #url, usr, pass
     @pool_run_commands << ADD_POOL
   when '--conf'
-    @conf_file_arg = arg.to_s
+    @conf_file_arg = arg
   when '--disable-pool'
+    @disable_pool_arg
     @pool_run_commands << DISABLE_POOL
   when '--enable-pool'
+    @enable_pool_arg = arg
     @pool_run_commands << ENABLE_POOL
   when '--host-file'
     @host_file_arg = arg
@@ -79,7 +81,7 @@ Usage: pool_utils.rb -c /path/to/cgminer.conf -f /path/to/host_file [option]
     @remove_pool_arg = arg
     @pool_run_commands << REMOVE_POOL
   when '--switchpool'
-    @switch_pool_arg = arg.to_s
+    @switch_pool_arg = arg
     @pool_run_commands << SWITCH_POOL
   end
 end
@@ -150,11 +152,11 @@ def add_pool
 end
 
 def disable_pool
-  []
+  send_query(DISABLE_POOL, message=nil, json=false, @disable_pool_arg)
 end
 
 def enable_pool
-  []
+  send_query(ENABLE_POOL, message=nil, json=false, @enable_pool_arg)
 end
 
 def pools

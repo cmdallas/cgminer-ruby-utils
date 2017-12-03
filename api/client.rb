@@ -45,6 +45,14 @@ module CGMiner
         command(:devs)
       end
 
+      def disable_pool(inex)
+        command(:disable_pool, index)
+      end
+
+      def enable_pool(index)
+        command(:enable_pool, index)
+      end
+
       def gpu(index)
         command(:gpu, index)
       end

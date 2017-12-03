@@ -20,10 +20,10 @@
     **Examples using setup_hostlist.rb**
     ```
     # create a host list using CIDR notation.
-    ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -c '10.0.0.1/24'
+    setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -c '10.0.0.1/24'
 
     # create a host list using a first-to-last range
-    ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r
+    setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r
     ```
 
 3. Populate the aws.conf file with your SNS Topic ARN, profile, and region. Make sure AWS credentials are configured on your system.
@@ -33,6 +33,6 @@
     **Examples using fleet_warden.rb**
     ```
     # check to see if 15 minute average hashrate is above 11TH/s
-    ruby ~./cgminer-ruby-utils/bin/fleet_warden.rb -f ~/cgminer-ruby-utils/hosts --hash15m
+    fleet_warden.rb -f ~/cgminer-ruby-utils/hosts --hash15m
     ```
 5. Configure cron to automatically fire the script every N minutes.
