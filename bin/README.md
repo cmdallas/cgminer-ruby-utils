@@ -18,7 +18,7 @@
 
 #### Pool Utils
 * pool_utils.rb
-  * Pool Utils contains utilities such as adding, switching pools for all hosts within a specificed, newline delimited host file.
+  * Pool Utils contains utilities such as adding, switching pools for all hosts within a specified, newline delimited host file.
   ```
   Usage: ./pool_utils.rb -f hosts [option]
   ```

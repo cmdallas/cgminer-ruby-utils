@@ -74,7 +74,7 @@ def query_cgminers(command)
   @host_list.each do |addr|
     begin
       host = CGMiner::API::Client.new(addr.to_s, 4028)
-      returned_data = Timeout::timeout(3) { host.send(command) }
+      returned_data = Timeout::timeout(TIMEOUT) { host.send(command) }
       json_response = JSON.parse(returned_data.body.to_json)
       if @hash15m_arg
         hashrate_listener_mh15m(addr, json_response)

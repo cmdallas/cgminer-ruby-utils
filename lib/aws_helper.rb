@@ -57,17 +57,18 @@ def sns_send(error_msg, hosts)
   end
 end
 
+### aws.conf readers
 def cloudwatch_conf_reader
-  conf_file = File.read('../aws.conf')
+  conf_file = File.read('aws.conf')
   data = JSON.parse(conf_file)
   @cloudwatch_profile = data['cloudwatch_config']['profile']
   @cloudwatch_region = data['cloudwatch_config']['region']
 end
 
 def sns_conf_reader
-  conf_file = File.read('../aws.conf')
+  conf_file = File.read('aws.conf')
   data = JSON.parse(conf_file)
   @sns_profile = data['sns_config']['profile']
   @sns_region = data['sns_config']['region']
-  @sns_topic = data['sns_config']['sns_topic_arn']
+  @sns_topic = data['sns_config']['topic_arn']
 end

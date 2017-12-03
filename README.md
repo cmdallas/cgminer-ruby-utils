@@ -15,7 +15,7 @@
     bootstrap=$(basename $_)
     chmod +x $bootstrap && ./$bootstrap
     ```
-2. Create a hosts file that is delimited by new lines. This can be done manually or with the 'setup_hostlist.rb' script.
+2. Create a hosts file that is delimited by new lines. This can be done manually or with the 'setup_hostlist.rb' script:
 
     **Examples using setup_hostlist.rb**
     ```
@@ -25,14 +25,14 @@
     # create a host list using a first-to-last range
     ruby ~./cgminer-ruby-utils/bin/setup_hostlist.rb -f ~/cgminer-ruby-utils/hosts -r
     ```
-3. Use the 'fleet_warden.rb' script to query all of the hosts in the host file
+
+3. Populate the aws.conf file with your SNS Topic ARN, profile, and region. Make sure AWS credentials are configured on your system.
+
+4. Use the 'fleet_warden.rb' script to query all of the hosts in the host file:
 
     **Examples using fleet_warden.rb**
     ```
     # check to see if 15 minute average hashrate is above 11TH/s
     ruby ~./cgminer-ruby-utils/bin/fleet_warden.rb -f ~/cgminer-ruby-utils/hosts --hash15m
     ```
-4. Configure cron to automatically fire the script every N minutes
-
-**Warning:**
-- AWS SNS topic/region is currently hardcoded in 'aws_helper.rb'. You will need to change this!
+5. Configure cron to automatically fire the script every N minutes.
