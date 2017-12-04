@@ -6,7 +6,7 @@ require 'getoptlong'
 require 'pry'
 require 'sane_timeout'
 
-require_relative '../lib/api'
+require_relative '../api/api'
 require_relative '../lib/assets'
 require_relative '../lib/constants'
 
