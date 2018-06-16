@@ -95,7 +95,7 @@ def conf_file_handle
 end
 
 def backup_cgminer_conf
-  `cp -y "#{@conf_file_arg}" "#{@conf_file_arg}.bak"`
+  %x{cp -y "#{@conf_file_arg}" "#{@conf_file_arg}.bak"}
 end
 
 def host_file_handle
